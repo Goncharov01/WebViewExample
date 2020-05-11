@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
             ((WebView) findViewById(R.id.wb)).restoreState(savedInstanceState.getBundle("webViewState"));
         else {
             webView = (WebView) findViewById(R.id.wb);
-            webView.loadUrl("https://navsegda.net/");
+            webView.loadUrl("https://startandroid.ru/ru/");
         }
 
         webView.getSettings().setLoadsImagesAutomatically(true);
