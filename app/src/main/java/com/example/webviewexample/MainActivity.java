@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,6 +17,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
+
 import java.util.Locale;
 
 
@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         webView = (WebView) findViewById(R.id.wb);
         mLang = getMyAppLang();
         System.out.println("!!!!!!!!!!" + mLang);
@@ -66,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-
+//        Localization
         if (savedInstanceState != null) {
             ((WebView) findViewById(R.id.wb)).restoreState(savedInstanceState.getBundle("webViewState"));
             webView.loadUrl(sp.getString("SAVED_URL", "https://navsegda.net"));
@@ -105,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void saveUrl(String url) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
         SharedPreferences.Editor editor = sp.edit();
         editor.putString("SAVED_URL", url);
         editor.apply();
@@ -129,24 +130,6 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setJavaScriptEnabled(true);
         CookieManager.getInstance().setAcceptCookie(true);
     }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        webView.saveState(outState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        webView.restoreState(savedInstanceState);
-    }
-
 
     @Override
     public void onBackPressed() {
