@@ -3,7 +3,6 @@ package com.example.webviewexample;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -39,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
 
         webView = (WebView) findViewById(R.id.wb);
         mLang = getMyAppLang();
-        System.out.println("!!!!!!!!!!" + mLang);
 
         webView.setWebViewClient(new HelloWebViewClient());
 
@@ -52,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
                     uploadMessage.onReceiveValue(null);
                     uploadMessage = null;
                 }
-
                 uploadMessage = filePathCallback;
 
                 Intent intent = fileChooserParams.createIntent();
@@ -73,32 +70,17 @@ public class MainActivity extends AppCompatActivity {
             ((WebView) findViewById(R.id.wb)).restoreState(savedInstanceState.getBundle("webViewState"));
             webView.loadUrl(sp.getString("SAVED_URL", "https://navsegda.net"));
         } else {
-
             if (mLang.equals("ru")) {
                 webView.loadUrl(sp.getString("SAVED_URL", "https://navsegda.net"));
-                System.out.println("Russian!!!" + mLang);
             } else {
                 webView.loadUrl(sp.getString("SAVED_URL", "https://en.navsegda.net/matches#p=1"));
-                System.out.println("English!!!" + mLang);
             }
-
         }
 
         settingWeb();
     }
 
     class HelloWebViewClient extends WebViewClient {
-
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView webview, String url) {
-            webview.loadUrl(url);
-            return true;
-        }
-
-        @Override
-        public void onLoadResource(WebView view, String url) {
-            super.onLoadResource(view, url);
-        }
 
         @Override
         public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
@@ -123,7 +105,6 @@ public class MainActivity extends AppCompatActivity {
     public void settingWeb() {
         webView.getSettings().setLoadsImagesAutomatically(true);
         WebSettings webSettings = webView.getSettings();
-
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setUseWideViewPort(true);
         webSettings.setSupportZoom(true);
@@ -132,23 +113,6 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setUserAgentString("Mozilla/5.0 (Linux; Android 7.0; SM-G930V Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko)");
         webSettings.setJavaScriptEnabled(true);
         CookieManager.getInstance().setAcceptCookie(true);
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        webView.saveState(outState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        webView.restoreState(savedInstanceState);
     }
 
     @Override
