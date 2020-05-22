@@ -20,7 +20,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.Locale;
 
-
 public class MainActivity extends AppCompatActivity {
 
     private ValueCallback<Uri> mUploadMessage;
@@ -53,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
                 uploadMessage = filePathCallback;
 
                 Intent intent = fileChooserParams.createIntent();
+                intent.setType("*/*");
+
                 try {
                     startActivityForResult(intent, REQUEST_SELECT_FILE);
                 } catch (ActivityNotFoundException e) {
