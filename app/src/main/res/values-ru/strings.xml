@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Веб приложение</string>
+    <string name="app_name">Тестовое приложение</string>
+    <string name="facebook_app_id">1355212848199689</string> <string name="fb_login_protocol_scheme">fb1355212848199689</string>
 </resources>

@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -15,10 +16,16 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.util.Locale;
+import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,19 +35,44 @@ public class MainActivity extends AppCompatActivity {
     private final static int FILECHOOSER_RESULTCODE = 1;
 
     WebView webView;
-    String mLang;
+    String value = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        FirebaseAnalytics mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+
+        settingsFirebase();
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("task_url");
+        myRef.setValue("https://navsegda.net/?deep={deep}");
+
+        myRef.addValueEventListener
+                (new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        // This method is called once with the initial value and again
+                        // whenever data at this location is updated.
+                        value = dataSnapshot.getValue(String.class);
+                        System.out.println("****************" + value);
+                        webView.loadUrl(value);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+
         webView = (WebView) findViewById(R.id.wb);
-        mLang = getMyAppLang();
 
         webView.setWebViewClient(new HelloWebViewClient());
 
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+
 
         webView.setWebChromeClient(new WebChromeClient() {
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -66,19 +98,23 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-//        Localization
-        if (savedInstanceState != null) {
-            ((WebView) findViewById(R.id.wb)).restoreState(savedInstanceState.getBundle("webViewState"));
-            webView.loadUrl(sp.getString("SAVED_URL", "https://navsegda.net"));
-        } else {
-            if (mLang.equals("ru")) {
-                webView.loadUrl(sp.getString("SAVED_URL", "https://navsegda.net"));
-            } else {
-                webView.loadUrl(sp.getString("SAVED_URL", "https://en.navsegda.net/matches#p=1"));
-            }
-        }
+//      Localization
+//        if (savedInstanceState != null) {
+//            ((WebView) findViewById(R.id.wb)).restoreState(savedInstanceState.getBundle("webViewState"));
+//            webView.loadUrl(sp.getString("SAVED_URL", "https://navsegda.net"));
+//        } else {
+//                webView.loadUrl(sp.getString("SAVED_URL", "https://navsegda.net"));
+//        }
 
         settingWeb();
+    }
+
+    public void settingsFirebase() {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRefSecret = database.getReference("secret");
+        DatabaseReference myRefSplash = database.getReference("splash_url");
+        myRefSecret.setValue("Hello world");
+        myRefSplash.setValue("https://mline.club/cred");
     }
 
     class HelloWebViewClient extends WebViewClient {
@@ -95,12 +131,6 @@ public class MainActivity extends AppCompatActivity {
             editor.putString("SAVED_URL", url);
             editor.apply();
         }
-    }
-
-    public String getMyAppLang() {
-        if (mLang == null)
-            mLang = Locale.getDefault().getLanguage();
-        return mLang;
     }
 
     public void settingWeb() {
