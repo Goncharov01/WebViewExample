@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -16,7 +15,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -35,7 +33,9 @@ public class MainActivity extends AppCompatActivity {
     private final static int FILECHOOSER_RESULTCODE = 1;
 
     WebView webView;
-    String value = "";
+    String splashURL = "";
+    String secret = "";
+    String taskURL = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,40 +43,64 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         FirebaseAnalytics mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-
-        settingsFirebase();
-
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("task_url");
-        myRef.setValue("https://navsegda.net/?deep={deep}");
+        DatabaseReference dbSplashUrl = database.getReference("splash_url");
+        DatabaseReference dbSecret = database.getReference("secret");
+        DatabaseReference dbTaskUrl = database.getReference("task_url");
 
-        myRef.addValueEventListener
-                (new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        // This method is called once with the initial value and again
-                        // whenever data at this location is updated.
-                        value = dataSnapshot.getValue(String.class);
-                        System.out.println("****************" + value);
-                        webView.loadUrl(value);
-                    }
+        dbSplashUrl.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                splashURL = dataSnapshot.getValue(String.class);
 
-                    }
-                });
+                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                String savedUrl = sp.getString("SAVED_URL", null);
+
+                if (savedUrl == null) {
+                    webView.loadUrl(splashURL);
+                } else {
+                    webView.loadUrl(savedUrl);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+
+            }
+        });
+
+        dbSecret.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                secret = dataSnapshot.getValue(String.class);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+
+            }
+        });
+
+        dbTaskUrl.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                taskURL = dataSnapshot.getValue(String.class);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+
+            }
+        });
 
         webView = (WebView) findViewById(R.id.wb);
 
         webView.setWebViewClient(new HelloWebViewClient());
 
-
-
         webView.setWebChromeClient(new WebChromeClient() {
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-            public boolean onShowFileChooser(WebView mWebView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
+            public boolean onShowFileChooser(WebView mWebView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
                 if (uploadMessage != null) {
                     uploadMessage.onReceiveValue(null);
                     uploadMessage = null;
@@ -98,23 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-//      Localization
-//        if (savedInstanceState != null) {
-//            ((WebView) findViewById(R.id.wb)).restoreState(savedInstanceState.getBundle("webViewState"));
-//            webView.loadUrl(sp.getString("SAVED_URL", "https://navsegda.net"));
-//        } else {
-//                webView.loadUrl(sp.getString("SAVED_URL", "https://navsegda.net"));
-//        }
-
         settingWeb();
-    }
-
-    public void settingsFirebase() {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRefSecret = database.getReference("secret");
-        DatabaseReference myRefSplash = database.getReference("splash_url");
-        myRefSecret.setValue("Hello world");
-        myRefSplash.setValue("https://mline.club/cred");
     }
 
     class HelloWebViewClient extends WebViewClient {
@@ -122,6 +130,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
             super.doUpdateVisitedHistory(view, url, isReload);
+
+            if (url.contains("money")) {
+                Intent intent = new Intent(MainActivity.this, SecondActivity.class);
+                intent.putExtra("secret", secret);
+                startActivity(intent);
+            } else if (url.contains("main")) {
+                webView.loadUrl(taskURL);
+            }
             saveUrl(url);
         }
 
@@ -174,5 +190,4 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-
 }
