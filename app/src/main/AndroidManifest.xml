@@ -17,7 +17,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".SecondActivity"></activity>
+        <activity android:name=".SecondActivity" />
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
@@ -26,9 +26,8 @@
 
                 <action android:name="android.intent.action.MAIN" />
                 <data
-                    android:host="deeplink.com"
-                    android:pathPrefix="/openapp"
-                    android:scheme="deep" />
+                    android:host="navsegda.net"
+                    android:scheme="https" />
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />

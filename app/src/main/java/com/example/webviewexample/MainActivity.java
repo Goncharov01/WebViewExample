@@ -18,12 +18,15 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.facebook.FacebookSdk;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,19 +37,21 @@ public class MainActivity extends AppCompatActivity {
 
     WebView webView;
     String splashURL = "";
-    String secret = "";
     String taskURL = "";
+    boolean redirected = false;
+    boolean activityRedirected = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        FacebookSdk.sdkInitialize(getApplicationContext());
+
         FirebaseAnalytics mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference dbSplashUrl = database.getReference("splash_url");
-        DatabaseReference dbSecret = database.getReference("secret");
-        DatabaseReference dbTaskUrl = database.getReference("task_url");
+        final DatabaseReference dbTaskUrl = database.getReference("task_url");
 
         dbSplashUrl.addValueEventListener(new ValueEventListener() {
             @Override
@@ -70,22 +75,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        dbSecret.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                secret = dataSnapshot.getValue(String.class);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-
-            }
-        });
-
         dbTaskUrl.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 taskURL = dataSnapshot.getValue(String.class);
+                redirect(dbTaskUrl);
             }
 
             @Override
@@ -98,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
         webView.setWebViewClient(new HelloWebViewClient());
 
+//      UploadPhoto
         webView.setWebChromeClient(new WebChromeClient() {
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             public boolean onShowFileChooser(WebView mWebView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
@@ -131,13 +126,17 @@ public class MainActivity extends AppCompatActivity {
         public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
             super.doUpdateVisitedHistory(view, url, isReload);
 
-            if (url.contains("money")) {
-                Intent intent = new Intent(MainActivity.this, SecondActivity.class);
-                intent.putExtra("secret", secret);
-                startActivity(intent);
-            } else if (url.contains("main")) {
-                webView.loadUrl(taskURL);
+            if (!redirected) {
+
+                if (url.contains("money")) {
+                    webView.loadUrl(taskURL);
+                } else if (url.contains("main")) {
+                    Intent intent = new Intent(MainActivity.this, SecondActivity.class);
+                    startActivity(intent);
+                }
+                redirected = true;
             }
+
             saveUrl(url);
         }
 
@@ -180,6 +179,29 @@ public class MainActivity extends AppCompatActivity {
             mUploadMessage = null;
         } else
             Toast.makeText(MainActivity.this.getApplicationContext(), "Failed to Upload Image", Toast.LENGTH_LONG).show();
+    }
+
+    public void redirect(DatabaseReference dbTaskUrl) {
+
+        if (!activityRedirected) {
+            final Uri uri = getIntent().getData();
+            if (uri != null) {
+                List<String> params = uri.getPathSegments();
+                String s = uri.toString();
+                if (s.contains("?deep=")) {
+                    String array[] = s.split("=");
+                    System.out.println("**************" + array[1]);
+                    dbTaskUrl.setValue(s);
+                    if (s.contains("money")) {
+                        webView.loadUrl(taskURL);
+                    } else if (s.contains("main")) {
+                        Intent intent = new Intent(MainActivity.this, SecondActivity.class);
+                        startActivity(intent);
+                    }
+                }
+            }
+            activityRedirected = true;
+        }
     }
 
     @Override
